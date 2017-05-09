@@ -1,49 +1,40 @@
+import os.path
+import sys
 import gym
-from agent import PolicyGradient
+from gym import wrappers
+from agent import PGPE
 
-DISPLAY_REWARD_THRESHOLD = 400  # renders environment if total episode reward is greater then this threshold
-RENDER = False  # rendering wastes time
+
+mod_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+save_path = os.path.join(mod_path, 'cartpole_experiment_1')
 
 env = gym.make('CartPole-v0')
-env.seed(1)     # reproducible, vanilla Policy gradient has high variance
-env = env.unwrapped
+env = wrappers.Monitor(env, save_path, force=True)  # Gym's built-in monitor functionality
 
-# # Basic info about the envir
-# print(env.action_space)
-# print(env.observation_space)
-# print(env.observation_space.high)
-# print(env.observation_space.low)
-
-RL = PolicyGradient(
-    n_actions=env.action_space.n,
+agent = PGPE(
     n_features=env.observation_space.shape[0],
-    learning_rate=0.02,
-    reward_decay=0.99,
+    n_actions=env.action_space.n
 )
 
 
-running_reward = 0
-for i_episode in range(3000):
+for ep in range(200):
     observation = env.reset()
 
     while True:
-        if RENDER: env.render()
-
-        action = RL.choose_action(observation)
+        # A typical RL env-agent paradigm
+        action = agent.choose_action(observation)
         observation_, reward, done, info = env.step(action)
 
-        RL.store_reward(reward)
+        agent.store_reward(reward)
 
-        ep_rs_sum = sum(RL.ep_rs)
-        if done or ep_rs_sum > 2 * DISPLAY_REWARD_THRESHOLD:  # End the ep if done or get enough reward
-            running_reward = running_reward * 0.9 + ep_rs_sum * 0.1
-            if running_reward > DISPLAY_REWARD_THRESHOLD: RENDER = True
-
-            print("Episode:", i_episode, "  Reward:", int(running_reward))
-            vt = RL.learn()
-
+        if done:
+            vt = agent.learn_and_sample()  # learn after an ep ends
+            print("Episode:", ep, "  Reward:", int(agent.get_return()))
             break
-
+        
+        # Swap obs
         observation = observation_
 
-        if running_reward > 2 * DISPLAY_REWARD_THRESHOLD: break
+# Close env
+# If not, can't use gym's built-in monitor funcationality
+env.close()
