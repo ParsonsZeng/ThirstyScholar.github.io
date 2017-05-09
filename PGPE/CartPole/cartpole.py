@@ -28,8 +28,8 @@ for ep in range(200):
         agent.store_reward(reward)
 
         if done:
-            vt = agent.learn_and_sample()  # learn after an ep ends
             print("Episode:", ep, "  Reward:", int(agent.get_return()))
+            vt = agent.learn_and_sample()  # learn after an ep ends
             break
         
         # Swap obs
