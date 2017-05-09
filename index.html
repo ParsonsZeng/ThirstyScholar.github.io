@@ -1,7 +1,565 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>learn_to_play_cartpole_with_pytorch_2_pgpe</title>
+
+
+<style type="text/css">
+body {
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: white;
+  padding: 30px; }
+
+body > *:first-child {
+  margin-top: 0 !important; }
+body > *:last-child {
+  margin-bottom: 0 !important; }
+
+a {
+  color: #4183C4; }
+a.absent {
+  color: #cc0000; }
+a.anchor {
+  display: block;
+  padding-left: 30px;
+  margin-left: -30px;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 20px 0 10px;
+  padding: 0;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  cursor: text;
+  position: relative; }
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA09pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoMTMuMCAyMDEyMDMwNS5tLjQxNSAyMDEyLzAzLzA1OjIxOjAwOjAwKSAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUM2NjlDQjI4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUM2NjlDQjM4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5QzY2OUNCMDg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5QzY2OUNCMTg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsQhXeAAAABfSURBVHjaYvz//z8DJYCRUgMYQAbAMBQIAvEqkBQWXI6sHqwHiwG70TTBxGaiWwjCTGgOUgJiF1J8wMRAIUA34B4Q76HUBelAfJYSA0CuMIEaRP8wGIkGMA54bgQIMACAmkXJi0hKJQAAAABJRU5ErkJggg==) no-repeat 10px center;
+  text-decoration: none; }
+
+h1 tt, h1 code {
+  font-size: inherit; }
+
+h2 tt, h2 code {
+  font-size: inherit; }
+
+h3 tt, h3 code {
+  font-size: inherit; }
+
+h4 tt, h4 code {
+  font-size: inherit; }
+
+h5 tt, h5 code {
+  font-size: inherit; }
+
+h6 tt, h6 code {
+  font-size: inherit; }
+
+h1 {
+  font-size: 28px;
+  color: black; }
+
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid #cccccc;
+  color: black; }
+
+h3 {
+  font-size: 18px; }
+
+h4 {
+  font-size: 16px; }
+
+h5 {
+  font-size: 14px; }
+
+h6 {
+  color: #777777;
+  font-size: 14px; }
+
+p, blockquote, ul, ol, dl, li, table, pre {
+  margin: 15px 0; }
+
+hr {
+  background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAECAYAAACtBE5DAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OENDRjNBN0E2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OENDRjNBN0I2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo4Q0NGM0E3ODY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo4Q0NGM0E3OTY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqqezsUAAAAfSURBVHjaYmRABcYwBiM2QSA4y4hNEKYDQxAEAAIMAHNGAzhkPOlYAAAAAElFTkSuQmCC) repeat-x 0 0;
+  border: 0 none;
+  color: #cccccc;
+  height: 4px;
+  padding: 0;
+}
+
+body > h2:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+body > h1:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+  body > h1:first-child + h2 {
+    margin-top: 0;
+    padding-top: 0; }
+body > h3:first-child, body > h4:first-child, body > h5:first-child, body > h6:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 {
+  margin-top: 0;
+  padding-top: 0; }
+
+h1 p, h2 p, h3 p, h4 p, h5 p, h6 p {
+  margin-top: 0; }
+
+li p.first {
+  display: inline-block; }
+li {
+  margin: 0; }
+ul, ol {
+  padding-left: 30px; }
+
+ul :first-child, ol :first-child {
+  margin-top: 0; }
+
+dl {
+  padding: 0; }
+  dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    padding: 0;
+    margin: 15px 0 5px; }
+    dl dt:first-child {
+      padding: 0; }
+    dl dt > :first-child {
+      margin-top: 0; }
+    dl dt > :last-child {
+      margin-bottom: 0; }
+  dl dd {
+    margin: 0 0 15px;
+    padding: 0 15px; }
+    dl dd > :first-child {
+      margin-top: 0; }
+    dl dd > :last-child {
+      margin-bottom: 0; }
+
+blockquote {
+  border-left: 4px solid #dddddd;
+  padding: 0 15px;
+  color: #777777; }
+  blockquote > :first-child {
+    margin-top: 0; }
+  blockquote > :last-child {
+    margin-bottom: 0; }
+
+table {
+  padding: 0;border-collapse: collapse; }
+  table tr {
+    border-top: 1px solid #cccccc;
+    background-color: white;
+    margin: 0;
+    padding: 0; }
+    table tr:nth-child(2n) {
+      background-color: #f8f8f8; }
+    table tr th {
+      font-weight: bold;
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr td {
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr th :first-child, table tr td :first-child {
+      margin-top: 0; }
+    table tr th :last-child, table tr td :last-child {
+      margin-bottom: 0; }
+
+img {
+  max-width: 100%; }
+
+span.frame {
+  display: block;
+  overflow: hidden; }
+  span.frame > span {
+    border: 1px solid #dddddd;
+    display: block;
+    float: left;
+    overflow: hidden;
+    margin: 13px 0 0;
+    padding: 7px;
+    width: auto; }
+  span.frame span img {
+    display: block;
+    float: left; }
+  span.frame span span {
+    clear: both;
+    color: #333333;
+    display: block;
+    padding: 5px 0 0; }
+span.align-center {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-center > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: center; }
+  span.align-center span img {
+    margin: 0 auto;
+    text-align: center; }
+span.align-right {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px 0 0;
+    text-align: right; }
+  span.align-right span img {
+    margin: 0;
+    text-align: right; }
+span.float-left {
+  display: block;
+  margin-right: 13px;
+  overflow: hidden;
+  float: left; }
+  span.float-left span {
+    margin: 13px 0 0; }
+span.float-right {
+  display: block;
+  margin-left: 13px;
+  overflow: hidden;
+  float: right; }
+  span.float-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: right; }
+
+code, tt {
+  margin: 0 2px;
+  padding: 0 5px;
+  white-space: nowrap;
+  border: 1px solid #eaeaea;
+  background-color: #f8f8f8;
+  border-radius: 3px; }
+
+pre code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent; }
+
+.highlight pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+  pre code, pre tt {
+    background-color: transparent;
+    border: none; }
+
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb
+}
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:0 auto;
+    }
+}
+@media print {
+	table, pre {
+		page-break-inside: avoid;
+	}
+	pre {
+		word-wrap: break-word;
+	}
+}
+</style>
+
+
+</head>
+
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+
+<h1 id="toc_0">Learn to Play CartPole with PyTorch #2 - A PGPE Approach</h1>
+
+<h2 id="toc_1"></h2>
+
+<p>Code: <em>agent.py</em>, <em>cartpole.py</em></p>
+
+<p>See the final result <a href="https://gym.openai.com/evaluations/eval_oyYfg7YQQem9ibYUyurg">here</a> on my OpenAI Gym page</p>
+
+<p>See the sample code <a href="https://github.com/ThirstyScholar/DRL/tree/master/PGPE/CartPole">here</a> on my Github page</p>
+
+<p><br>
+<center> <strong>INTRODUCTION</strong> </center></p>
+
+<p>In this post, we will apply another policy-based algorithm to solve the CartPole environment. Unlike REINFORCE, searching the optimal policy in the action space, policy gradient with parameter-based explorations(PGPE) searches the optimal policy in the parameter space. The idea is to equip each model parameter with a <em>prior distribution</em> to sample from. At the beginning of each roll-out, we sample a set of model parameters, and follow a <em>deterministic</em> controller(policy) for the episode thereafter. Just like REINFORCE, the original PGPE adopts an episodic setting. After an episode finishes, we compute the gradient of the objective function w.r.t. <em>hyper-parameters of the prior distribution</em> and do the parameter update.</p>
+
+<p><br>
+<center> <strong>ALGORITHM</strong> </center></p>
+
+<p>Note:</p>
+
+<ul>
+<li><p>Typing LaTeX inline is not supported by my Markdown editor, so some of the equations may be a little difficult to read, refer to the <a href="http://kyb.mpg.de/fileadmin/user_upload/files/publications/attachments/Neural-Networks-2010-Sehnke_%5b0%5d.pdf">original paper</a> for details.</p></li>
+<li><p>Some notations have been modified to better fit in the context, hence you may find some inconsistency in notations with the original paper.</p>
+
+<p>​</p></li>
+</ul>
+
+<ol>
+<li><p>Each action follows the <em>deterministic policy</em> (the \(\delta\) term) with model parameters \(\delta\) drawn from the <em>prior distribution</em>, parametrized by \(\rho\)
+\[
+p(a | s, \rho) = \int_{\Theta}{p(\theta|\rho)\delta_{F_{\theta}(s) = a}}d\theta
+\]
+which means the prbobability of taking action \(a\) under state \(s\) is exactly the probability of drawing parameter \(\theta\) given hyper-parameter \(\rho\), since the delta function(our deterministic controller) contributes no stochasticity in the equation.</p></li>
+<li><p>The objective \(J(\rho)\) is defined to be
+\[
+J(\rho) = \int_{\Theta}\int_{H}{p(h, \theta | \rho)r(h)dhd\theta}
+\]
+which is the <em>expected return</em> taken over all possible parameters we can draw from the prior and the history generated by following policy \(p(h, \theta)\).</p></li>
+<li><p>Apply the classic log-likelihood trick, we obtain the gradient of the objective w.r.t. hyper-parameter \(\rho\)
+\[
+\nabla_{\rho}J(\rho) = \int_\Theta \int_H p(h, \theta|\rho) \nabla_\rho \log p(h, \theta | \rho) r(h) dh d\theta
+\]</p></li>
+<li><p>Observe that the history is conditionally independent of \(\rho\) given \(\theta\), that is, \(p(h, \theta|\rho) = p(h|\rho) p(\theta|\rho)\) and the partial derivative reduces, \(\nabla_\rho \log p(h, \theta|\rho) = \nabla_\rho \log p(\theta|\rho)\). Combining all of the above, the gradient estimator reveals:
+\[
+\nabla_\rho J(\rho) \approx \frac{1}{N}\sum_{n=1}^N \nabla_\rho \log p(\theta^n|\rho) r(h^n)
+\]
+<strong>Remark</strong>  the above gradient estimator is completely determined by the agent&#39;s model paremters <em>without</em> the knowledge of environment dynamics. Information concerning environment dynamics encapsulates in the term \(p(h|\theta)\), as we get rid of it when taking the log value of the term and differentiate w.r.t. \(\rho\). Hence PGPE is a <em>model-free</em> algorithm, just as REINFORCE.</p></li>
+<li><p>Here we assume each model parameter \(\theta_i\) follows a normal distribution independent with one another. Hence the hyper-parameters \(\rho\) consists of a sequence of means and standard deviations \(\rho = ((\mu_i, \sigma_i)_i)\). Direct computation gives
+\[
+\nabla_\mu \log p(\theta|\rho) = \frac{\theta - \mu}{\sigma^2},\quad \nabla_\sigma \log p(\theta|\rho) = \frac{(\theta - \mu)^2 - \sigma^2}{\sigma^3}
+\]
+Finally, we choose a stepsize proportional to the variance, \(\alpha_\rho = \alpha \sigma^2\). The stepsize may be different for different parameters as we will see below.
+\[
+\Delta \mu = \alpha_\mu (r - b)(\theta - \mu), \quad \Delta \sigma = \alpha_\sigma (r - b) \frac{(\theta - \mu)^2 - \sigma^2}{\sigma}
+\]
+where \(b\) is the reward baseline for variance reduction purpose.</p></li>
+</ol>
+
+<p><img src="/Users/ChienYiHuang/Desktop/Vision/Github/PGPE.png" alt="PGPE"></p>
+
+<p>The algorithm taken from the <a href="http://kyb.mpg.de/fileadmin/user_upload/files/publications/attachments/Neural-Networks-2010-Sehnke_%5b0%5d.pdf">original paper</a> is shown above. In this post we will implement the one on the left-hand side (the vanilla version). But as we will see later, this simple algorithm turned out to be very effective against benchmark control problems compared with to standard PG methods such as REINFORCE.</p>
+
+<p><br>
+<center> <strong>CODE</strong> </center></p>
+
+<p><em>cartpole.py</em>:</p>
+
+<div><pre><code class="language-python">import os.path
+import sys
+import gym
+from gym import wrappers
+from agent import PGPE
+
+
+# Create a directory to save logs and results
+mod_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+save_path = os.path.join(mod_path, &#39;cartpole_experiment_1&#39;)
+
+env = gym.make(&#39;CartPole-v0&#39;)
+
+# Gym&#39;s built-in monitor functionality
+# We can later upload our result to OpenAI Gym
+env = wrappers.Monitor(env, save_path, force=True)  
+
+# Create an agent instance
+RL = PGPE(
+    n_features=env.observation_space.shape[0],
+    n_actions=env.action_space.n
+)
+
+
+for ep in range(200):
+    observation = env.reset()
+
+    while True:
+        action = RL.choose_action(observation)
+        observation_, reward, done, info = env.step(action)
+
+        RL.store_return(reward)
+        r = RL.get_reward()
+
+        if done:
+            vt = RL.learn_and_sample()
+            print(&quot;Episode:&quot;, ep, &quot;  Reward:&quot;, int(r))
+            break
+
+        observation = observation_
+
+# Close env.
+env.close()
+</code></pre></div>
+
+<p><br>
+<em>agent.py</em>:</p>
+
+<div><pre><code class="language-python">import numpy as np
+from sklearn import preprocessing
+
+import torch
+import torch.nn as nn
+from torch.autograd import Variable
+
+
+class PGPE:
+    def __init__(self, n_actions, n_features):
+        self.n_actions = n_actions
+        self.n_features = n_features
+
+        self.ita = 0.9
+        self.b = 0.
+        self.r = 0.
+        self.R = []
+        self.R.append(0.)
+
+        self.model = nn.Sequential(
+            nn.Linear(self.n_features, self.n_actions, bias=False),
+            nn.Softmax()  # deterministic policy, pick action with greater value
+        )
+
+        self.Obs = []
+        for _ in range(self.n_features): self.Obs.append([0.])
+
+        self.Mu_lr = 0.2
+        self.Sigma_lr = 0.1
+
+        self.Param = list(self.model.parameters())
+        self.Mu = []  # Lists to store hyper-params
+        self.Sigma = []
+        for p in self.Param:  # Initialize hyper-params
+            self.Mu.append(torch.zeros(p.size()))
+            self.Sigma.append(torch.ones(p.size()) * 2)
+
+            p.data = torch.normal(self.Mu[-1], self.Sigma[-1])
+
+    def choose_action(self, obs):
+        # Scale input state
+        temp = []
+        for i in range(self.n_features):
+            self.Obs[i].append(obs[i])
+            temp.append(preprocessing.scale(np.array(self.Obs[i]))[-1])
+
+        temp = np.array(temp)
+        s = Variable(torch.from_numpy(temp.astype(np.float32))).unsqueeze(0)
+        a = self.model.forward(s).data.numpy()
+        action = a[0].argmax()
+        
+        return action
+
+    def get_reward(self):
+        return self.r
+
+    def store_return(self, r):
+        self.r += r
+
+    def learn_and_sample(self):
+        # Process reward to range [0, 1]
+        self.R.append(self.r / 200)
+
+        # reset return tracker
+        self.r = 0.
+        
+        # Freeze params if hit target reward
+        if self.R[-1] &gt;= 1.0: return
+        
+        # IMPORTANT: Scale reward
+        _r = float(preprocessing.scale(np.array(self.R))[-1])
+
+        # Learn and re-sample model parameters
+        for i in range(len(self.Param)):
+            # Learn, comopute quantities needed to update params
+            # variable names are consistent with Algorithm1 above
+            _T = self.Param[i].data - self.Mu[i]
+            _S = (_T**2 - self.Sigma[i]**2) / self.Sigma[i]
+
+            _delta_Mu = self.Mu_lr * _r * _T
+            self.Mu[i] += _delta_Mu
+
+            _delta_Sigma = self.Sigma_lr * _r * _S
+            self.Sigma[i] += _delta_Sigma
+
+            # Re-sample
+            self.Param[i].data = torch.normal(self.Mu[i], self.Sigma[i])
+</code></pre></div>
+
+<p><strong>Result</strong></p>
+
+<p>The result of this algorithm can be viewed on <a href="https://gym.openai.com/evaluations/eval_oyYfg7YQQem9ibYUyurg">my OpenAI Gym page</a>. I also provide a gist link there so you can easiliy reproduce the result. As you can see, the algorithm converges quickly, taking only 5 episodes to solve the CartPole environment. The model consists of only 8 parameters and without performing any sophiscated initialization trick (in fact, random initialization from normal(0, 2) is used to draw initial model parameters). Other results provided on the <a href="https://gym.openai.com/envs/CartPole-v0">OpenAI Gym cartpole environment page</a> utilizing the REINFORCE algo often take up dozens more episodes to converge to a stable policy.</p>
+
+<p>By the way, in case anyone is interested in what the input states are in the cartpole env. Here is the <a href="https://github.com/openai/gym/wiki/CartPole-v0">official OpenAI gym github page</a> providing the background information. Note the env setting is a bit different from the one on the wiki page. But it doesn&#39;t really matter since we scale the input state when it comes in.</p>
+
+
+
+<script type="text/x-mathjax-config">
+(function () {
+
+MathJax.Hub.Config({
+	'showProcessingMessages': false,
+	'messageStyle': 'none'
+});
+
+if (typeof MathJaxListener !== 'undefined') {
+	MathJax.Hub.Register.StartupHook('End', function () {
+		MathJaxListener.invokeCallbackForKey_('End');
+	});
+}
+
+})();
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
 </body>
+
 </html>
