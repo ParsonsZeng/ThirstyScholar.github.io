@@ -11,9 +11,12 @@ class PGPE:
         self.n_actions = n_actions
         self.n_features = n_features
 
-        self.ita = 0.9
-        self.b = 0.
-        self.r = 0.
+        self.ret = 0.
+        
+        # List to store reward received from the env every step.
+        # Append a zero first since at least two numbers is needed
+        # to perform normalization(o.w. error will occur at the 
+        # first step).
         self.R = []
         self.R.append(0.)
 
@@ -22,66 +25,80 @@ class PGPE:
             nn.Softmax()  # deterministic policy, pick action with greater value
         )
 
-        self.a = Variable(torch.zeros(1, n_actions))
-
+        # List to store observations(array of shape (1, 4))
+        # Append a zero first for the same reason as above
         self.Obs = []
         for _ in range(self.n_features): self.Obs.append([0.])
 
+        # Learning rate for hyper-params mu and sigma
         self.Mu_lr = 0.2
         self.Sigma_lr = 0.1
 
+        # Prepare hyper-params, store mean/var separately in lists
         self.Param = list(self.model.parameters())
         self.Mu = []
         self.Sigma = []
-        for p in self.Param:  # initialize hyper-params
+        for p in self.Param:  
+            # initialize hyper-params
             self.Mu.append(torch.zeros(p.size()))
-            self.Sigma.append(torch.ones(p.size()) * 2)
-
+            self.Sigma.append(torch.ones(p.size()))
+            
+            # Sample initial model params
             p.data = torch.normal(self.Mu[-1], self.Sigma[-1])
-            # init.normal(p.data, mean=1, std=2)
 
     def choose_action(self, obs):
+        # Normalize observations
         temp = []
         for i in range(self.n_features):
             self.Obs[i].append(obs[i])
             temp.append(preprocessing.scale(np.array(self.Obs[i]))[-1])
 
         temp = np.array(temp)
-        s = Variable(torch.from_numpy(temp.astype(np.float32))).unsqueeze(0)
-        self.a = self.model.forward(s)
-        a = self.a.data.numpy()
-        action = a[0].argmax()
-        # action = np.random.choice(np.arange(a.shape[1]), p=a[0])
+        s = Variable(torch.from_numpy(temp.astype(np.float32))).unsqueeze(0)  # cast np array to torch variable
+        a = self.model.forward(s).data.numpy()
+        action = a[0].argmax()  # pick action with greater value
         return action
 
-    def get_reward(self):
-        return self.r
+    def get_return(self):
+        return self.ret
 
-    def store_return(self, r):
-        self.r += r
+    def store_reward(self, r):
+        # Compute undiscounted sum of rewards
+        self.ret += r
 
     def learn_and_sample(self):
-        # Process reward
-        self.R.append(self.r / 200)
+        # Scale reward to range [0, 1]
+        # In the CartPole env, one condition for episode termination is
+        # that agent cumulates +200 rewards. Env details can be found here:
+        # https://github.com/openai/gym/wiki/CartPole-v0
+        self.R.append(self.ret - 200)
 
         # reset return tracker
-        self.r = 0.
+        self.ret = 0.
 
-        # Freeze params if hit target reward
-        if self.R[-1] >= 1.0: return
+        # normalize reward signal
+        _r = float(preprocessing.scale(np.array(self.R))[-1])
 
         # Learn and re-sample model parameters
-        _r = float(preprocessing.scale(np.array(self.R))[-1])
+        # This part is a direct implementation of the vanilla
+        # version of the PGPE algorithm, original paper can be
+        # found here:
+        # http://kyb.mpg.de/fileadmin/user_upload/files/publications/attachments/Neural-Networks-2010-Sehnke_%5b0%5d.pdf
+        # Left column of Algorithm 1 table on p.7 in the paper
         for i in range(len(self.Param)):
-            # Learn
+            # Learning
+            # These are the T and S matrices in the original paper
             _T = self.Param[i].data - self.Mu[i]
             _S = (_T**2 - self.Sigma[i]**2) / self.Sigma[i]
 
+            # Update means
             _delta_Mu = self.Mu_lr * _r * _T
             self.Mu[i] += _delta_Mu
 
+            # Update standard deviations
             _delta_Sigma = self.Sigma_lr * _r * _S
             self.Sigma[i] += _delta_Sigma
-
-            # Re-sample
-            self.Param[i].data = torch.normal(self.Mu[i], self.Sigma[i])
+            
+            # Freeze params if hit target reward, else re-sample
+            if self.R[-1] < 0.:
+                self.Param[i].data = torch.normal(self.Mu[i], self.Sigma[i])
