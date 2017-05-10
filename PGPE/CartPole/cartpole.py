@@ -5,12 +5,14 @@ from gym import wrappers
 from agent import PGPE
 
 
+env = gym.make('CartPole-v0')
+
+# Gym's built-in monitor functionality
 mod_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 save_path = os.path.join(mod_path, 'cartpole_experiment_1')
+env = wrappers.Monitor(env, save_path, force=True)
 
-env = gym.make('CartPole-v0')
-env = wrappers.Monitor(env, save_path, force=True)  # Gym's built-in monitor functionality
-
+# Create an agent instance
 agent = PGPE(
     n_features=env.observation_space.shape[0],
     n_actions=env.action_space.n
