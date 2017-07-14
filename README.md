@@ -14,7 +14,7 @@
 
 3. spiral (Spiral Dataset Classification)
 
-   - [From Scratch: Training a Neural Network to Classify Spiral Datasets](https://github.com/ThirstyScholar/ThirstyScholar.github.io/blob/master/Spiral/spiral.html)
+   - [From Scratch: Training a Neural Network to Classify Spiral Datasets](https://github.com/ThirstyScholar/ThirstyScholar.github.io/blob/master/Spiral/spiral.md)
 
      Train a two-layered neural network from scratch. Good practice to test understanding of backpropagation and implement it without using high-level neural netowrk libraries.
 
