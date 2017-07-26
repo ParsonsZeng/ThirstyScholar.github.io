@@ -5,7 +5,7 @@
 1. **BP** (Backpropagation)
 
    - Backpropagate a Two-Layered Neural Network from Scratch
-     - Show the math and code behind backpropagation of a two-layered feedforward neural network.
+     - Show the math and code behind the backpropagation algorithm of a two-layered feedforward neural network.
 
    ​
 
@@ -13,7 +13,9 @@
 
    - From Scratch: Training a Neural Network to Classify Spiral Datasets
 
-     - Train a two-layered neural network from scratch. Good practice to test understanding of backpropagation and implement it without using high-level neural netowrk libraries.
+     - Train a two-layered neural network *from scratch* in Numpy. Good practice to test the understanding of backpropagation and its implementation without using high-level neural netowrk libraries.
+     - Add test data.
+     - Add validation on hyper-parameters.
 
    ​
 
@@ -25,7 +27,7 @@
 
 4. **RNN** (Recurrent Neural Network)
 
-   - Train a recurrent neural network to predict $\sin(t)$ using $\cos(t)$ with PyTorch.
+   - Train a *recurrent neural network* to predict $\sin(t)$ with $\cos(t)$ using PyTorch.
 
      ​
 
@@ -35,6 +37,3 @@
      - REINFORCE
      - PGPE
 
-   ​
-
-   ​
