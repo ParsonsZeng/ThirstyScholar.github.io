@@ -82,7 +82,7 @@ Another approach is to *concatenate* the output of the hidden layer to its input
 
 
 
-**Nb 4:  Hybrid Network.** This network is a little different from the previous ones (actually I built this network just for fun). This network had multiple structures, both recurrent and feedforward. It combines the above two recurrent networks, both the Elman and the Jordan network. There is an additional feedforward structure - directly takes the input to the output layer. This is accomplished by adding an linear layer connecting the input and the output layer. The reason to do so is that I want the network to have the ability to bypass the information to go into the recurrent layer. An interesting experiment I want to conduct on the network behavior under this kind of structure.
+**Nb 4:  Hybrid Network.** This network is a little different from the previous ones (actually I built this just for fun). This network combines the Elman and the Jordan network. It has two loops - both hidden-to-hidden and output-to-hidden, hence able to get feedback signal from both the output and the last hidden state. The result shows improvements than using either the (single-layered) Elman and Jordan network alone.
 
 
 
