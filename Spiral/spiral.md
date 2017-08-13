@@ -2,6 +2,10 @@
 
 
 
+*I add a new source file `spiral_i.py` containing two new features: interactive plotting and momentum parameter update. You can now watch the training as the process goes along and the momentum update enjoys faster converges than the vallina gradient descent in the original version.*
+
+
+
 *Table of Content.*
 
 [TOC]
