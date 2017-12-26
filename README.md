@@ -2,38 +2,12 @@
 
 
 
-1. **BP** (Backpropagation)
+The repo contains the following material:
 
-   - Backpropagate a Two-Layered Neural Network from Scratch
-     - Show the math and code behind the backpropagation algorithm of a two-layered feedforward neural network.
 
-   ​
 
-2. **Spiral** (Spiral Dataset Classification)
+## Deep Deterministic Policy Gradient (DDPG)
 
-   - From Scratch: Training a Neural Network to Classify Spiral Datasets
+A simple implementation of the *deep deterministic policy gradient* algorithm presented in [this paper](https://arxiv.org/pdf/1509.02971.pdf) on the classical [Pendulum task](https://github.com/openai/gym/wiki/Pendulum-v0) via [OpenAI Gym](https://gym.openai.com).
 
-     - Train a two-layered neural network *from scratch* in Numpy. Good practice to test the understanding of backpropagation and its implementation without using high-level neural netowrk libraries.
-     - Add test data.
-     - Add validation on hyper-parameters.
-
-   ​
-
-3. **LR** (Linear Regression)
-
-   - Train a linear regression model to fit a 1-dimensional data.
-
-   ​
-
-4. **RNN** (Recurrent Neural Network)
-
-   - Train a *recurrent neural network* to predict $\sin(t)$ with $\cos(t)$ using PyTorch.
-
-     ​
-
-5. **CartPole** (OpenAI Gym)
-
-   - Solve the CartPole task by *reinforcement learning*.
-     - REINFORCE
-     - PGPE
-
+![ddpg_pendulum_result](ddpg_pendulum_result.png)
