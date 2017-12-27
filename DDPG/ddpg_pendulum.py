@@ -1,4 +1,5 @@
 from replay_memory import Transition, ReplayMemory
+from running_stat import ZFilter
 
 from itertools import zip_longest
 import matplotlib.pyplot as plt
@@ -59,7 +60,11 @@ class DDPG(nn.Module):
 
     def __init__(self):
         super(DDPG, self).__init__()
-        
+
+        # Z filter
+        self.zfilter = ZFilter(S_DIM)
+
+        #
         self.actor = Actor(S_DIM, HIDDEN_SIZE, A_DIM)
         self.actor_optim = torch.optim.Adam(self.actor.parameters(), LR_A)
 
@@ -76,13 +81,18 @@ class DDPG(nn.Module):
         self._Var = lambda v, dtype: Variable(torch.from_numpy(v).type(dtype))
 
     def choose_action(self, s, noise):
-        s = self._Var(np.expand_dims(s, axis=0), torch.FloatTensor)
+        s = self.zfilter(s)
+        S = self._Var(np.expand_dims(s, axis=0), torch.FloatTensor)
 
-        action = self.actor(s).data.numpy()[0] * A_BOUND
+        action = self.actor(S).data.numpy()[0] * A_BOUND
         action += noise
         return action
 
     def store_transition(self, s, a, r, s_):
+        s = self.zfilter(s)
+        s_ = self.zfilter(s_)
+        r /= 16   # scale reward signal
+
         self.replay_memory.push(s, a, np.array([r]), s_)   # store with 1D np array
 
     def learn(self):
@@ -120,12 +130,10 @@ class DDPG(nn.Module):
         # Soft update on target networks
         for c, c_t, a, a_t in zip_longest(self.critic.parameters(), self.critic_target.parameters(),
                                           self.actor.parameters(), self.actor_target.parameters()):
-
             if c is not None:
                 c_t.data = TAU * c.data + (1 - TAU) * c_t.data
             if a is not None:
                 a_t.data = TAU * a.data + (1 - TAU) * a_t.data
-
 
 
 if __name__ == '__main__':
@@ -152,4 +160,5 @@ if __name__ == '__main__':
             if done:
                 print('Ep: ', ep, '| Ep_r: ', round(ret, 2))
                 break
+
 
