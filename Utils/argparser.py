@@ -10,7 +10,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
+# Positional argument
 parser.add_argument('bool', help='A boolean value', type=bool)
+
+# Optional argument
 parser.add_argument('--int', help='A int value', type=int)
 parser.add_argument('--float', help='A float value', type=float)
 

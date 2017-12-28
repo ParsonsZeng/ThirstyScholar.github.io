@@ -170,7 +170,7 @@ if __name__ == '__main__':
     import pickle
     i = 0 if args.file_index is None else args.file_index
 
-    file_name = 'DDPG_Pendulum_{0}'.format(i)
+    file_name = 'DDPG_Pendulum_{0}.pkl'.format(i)
     with open(file_name, mode='wb') as handle:
         pickle.dump(ep_ret, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
