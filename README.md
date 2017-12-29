@@ -10,7 +10,7 @@ A simple implementation of the *deep deterministic policy gradient* algorithm pr
 
 ![ddpg_pendulum_result](DDPG/ddpg_pendulum_result.png)
 
-I also normalized the state input by keeping a running stat using code from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py) and scale the reward signal into the range roughly between [-1, 0] by dividing it by 16.
+I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and scale the reward signal into the range roughly between [-1, 0] by dividing it by 16.
 
 
 
@@ -20,4 +20,4 @@ A simple implementation of the single-threaded version of the *proximal policy o
 
 ![ppo_cartpole_result](PPO/ppo_cartpole_result.png)
 
-I also normalized the state input by keeping a running stat using code from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py) and slightly modified the reward function to make it more suitable for learning.
+I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and slightly modified the reward function to make it more suitable for learning.
