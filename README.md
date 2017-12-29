@@ -1,9 +1,7 @@
 # Thirsty Scholar's Deep Thinking
 
 This repo contains the following materials:
-$$
-\mathbb E_{q(\textbf{w}|\theta)} [\log p(\mathcal D | \textbf{w})]
-$$
+
 
 
 ## Deep Deterministic Policy Gradient (DDPG)
