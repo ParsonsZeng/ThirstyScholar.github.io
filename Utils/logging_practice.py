@@ -6,7 +6,10 @@ Adapt from:
 """
 
 import logging
-##logging.basicConfig(level=logging.INFO)
+
+# if comment out, won't display message on screen
+logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
