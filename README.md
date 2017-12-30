@@ -24,7 +24,7 @@ I also standardized the state input by keeping a running stat (taken from [John 
 
 
 
-#### Bayes by Backprop (BBB)
+## Bayes by Backprop (BBB)
 
 An implementation of the *Bayes by Backprop* algorithm presented in the paper ["Weight Uncertainty in Neural Networks"](https://arxiv.org/abs/1505.05424) on the MNIST dataset using PyTorch. Here we use a scaled mixture Gaussian prior.
 
