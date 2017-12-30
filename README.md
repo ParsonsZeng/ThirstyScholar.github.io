@@ -21,3 +21,23 @@ A simple implementation of the single-threaded version of the *proximal policy o
 ![ppo_cartpole_result](PPO/ppo_cartpole_result.png)
 
 I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and slightly modified the reward function to make it more suitable for learning.
+
+
+
+#### Bayes by Backprop (BBB)
+
+An implementation of the *Bayes by Backprop* algorithm presented in the paper ["Weight Uncertainty in Neural Networks"](https://arxiv.org/abs/1505.05424) on the MNIST dataset using PyTorch.
+
+![bbb_mnist_result](BBB/bbb_mnist_result.png)
+
+As you can see on the plot, bayes by backprop prevents the optimization from overfitting.
+
+
+
+My implementation differs from the one described in the paper in the following ways:
+
+1. Use exponential function instead of *softplus* for transforming the standard deviation, found to work equally well.
+
+2. Instead of sampling Gaussian noise at every step (which can be very slow), we instantiate a huge block of Gaussian noise at the begining and sample from it.
+
+   \*This means the Gaussian noise sampled are not strictly indenpendent, but didn't find it to be an issue.
