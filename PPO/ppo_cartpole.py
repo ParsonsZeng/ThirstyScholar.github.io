@@ -9,7 +9,6 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.autograd import Variable
-
 plt.style.use('seaborn-paper')
 
 
@@ -39,7 +38,7 @@ class PPO_Critic(nn.Module):
 
 env = gym.make('CartPole-v0')
 
-NUM_EP = 500
+NUM_EP = 200
 NUM_EPOCH = 5
 GAMMA = .99   # discount factor
 N_S = env.observation_space.shape[0]
@@ -50,18 +49,16 @@ ACTOR_LR = 2.5e-4
 CRITIC_LR = 5e-4
 HIDDEN_SIZE = 128
 
+
+# Z filter
 zfilter = ZFilter(N_S)
 
 actor = PPO_Actor(N_S, HIDDEN_SIZE, N_A)
-actor_old = deepcopy(actor)
-
 actor_optim = torch.optim.Adam(actor.parameters(), lr=ACTOR_LR)
 
 critic = PPO_Critic(N_S, HIDDEN_SIZE)
-
-critic_optim = torch.optim.Adam(critic.parameters(), lr=CRITIC_LR)
 huber_loss = nn.SmoothL1Loss(size_average=True)
-
+critic_optim = torch.optim.Adam(critic.parameters(), lr=CRITIC_LR)
 
 _Var = lambda x, dtype: Variable(torch.from_numpy(x).type(dtype))
 
@@ -104,20 +101,17 @@ for i_episode in range(NUM_EP):
             np_a = np.array(traj['a'])
             np_r = np.array(traj['r'])
 
-            # Swap old actor network
-            actor_old.load_state_dict(actor.state_dict())
-
             S_ = _Var(s_, torch.FloatTensor).unsqueeze(0)
             V_ = critic.forward(S_).data.numpy()[0][0]
 
             # Compute ^R_t (estimator for Q(s_t, a_t))
             n_step = []
             _ret = V_
-            for _r, T in zip(reversed(traj['r']), traj['T']):
-                _ret = _r + GAMMA * _ret * T   # truncate the return if ep terminates
+            for _r, _T in zip(reversed(traj['r']), reversed(traj['T'])):
+                _ret = _r + GAMMA * _ret * _T   # truncate the return if ep terminates
                 n_step.append(_ret)
 
-            n_step.reverse()   # in-place reverse
+            n_step.reverse()
             n_step = np.array(n_step)
 
             S = _Var(np_s, torch.FloatTensor)
@@ -127,19 +121,21 @@ for i_episode in range(NUM_EP):
             Adv = _Var(n_step - v, torch.FloatTensor)
 
             Act = _Var(np_a, torch.LongTensor)
-            A_old = actor_old.forward(S).detach().gather(1, Act)
+            A_old = actor.forward(S).detach().gather(1, Act)
 
             for i in range(NUM_EPOCH):
-                V = critic.forward(S)
-                A_new = actor.forward(S).gather(1, Act)
 
                 # Optimize critic
+                V = critic.forward(S)
+
                 critic_loss = huber_loss(V, N_step)
                 critic_optim.zero_grad()
                 critic_loss.backward()
                 critic_optim.step()
 
                 # Construct surrogate objective with epsilon 0.2
+                A_new = actor.forward(S).gather(1, Act)
+
                 ratio = A_new / A_old * Adv
                 clamp_ratio = torch.clamp(A_new / A_old, min=1 - EPS, max=1 + EPS) * Adv
                 surr_obj = torch.min(ratio, clamp_ratio)
