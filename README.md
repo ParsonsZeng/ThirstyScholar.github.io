@@ -41,3 +41,13 @@ My implementation differs from the one described in the paper in the following w
 2. Instead of sampling Gaussian noise at every step (which can be very slow), we instantiate a huge block of Gaussian noise at the begining and sample from it.
 
    \*This means the Gaussian noise sampled are not strictly indenpendent, but didn't find it to be an issue.
+
+3. Use a *symmetric sampling* technique to reduce variance. That is, we always sampling paired Gaussian noise which differ only by a negative sign. Since doing so added some complexity in the code, I saved it to another file: `bayes_by_backprop_ss.py`.
+
+
+
+Here is a comparison between using and not using symmetric sampling. To make it a fair fight, we take 2 samples from the posterior when we not using symmetric sampling.
+
+![ss_compare](BBB/ss_compare.png)
+
+Test error with and without symmetric sampling are around 2.2%, respectively. With symmetric sampling, learning converges faster but the untimate result is similar to their random sampling counterpart.

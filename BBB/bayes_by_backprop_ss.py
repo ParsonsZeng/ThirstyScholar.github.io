@@ -4,7 +4,7 @@ Adapt from:
 2. http://gluon.mxnet.io/chapter18_variational-methods-and-uncertainty/bayes-by-backprop.html
 """
 
-# from copy import deepcopy
+
 import numpy as np
 import math
 
@@ -19,6 +19,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 
 # Hyperparameters
 N_Epochs = 15
+Symmetric = True
 N_Samples = 1
 LearningRate = 1e-3
 BatchSize = 100
@@ -43,6 +44,8 @@ N_Batch = training_set.train_data.size()[0] / BatchSize
 
 
 # # Split training and validation set manually
+# from copy import deepcopy
+#
 # val_set = deepcopy(training_set)
 #
 # indices = list(range(len(training_set)))
@@ -137,21 +140,35 @@ class MLPLayer(nn.Module):
 
         self._Var = lambda x: Variable(torch.from_numpy(x).type(torch.FloatTensor))
 
-    def forward(self, X, infer=False):
+        self.epsilon_W = None
+        self.epsilon_b = None
+
+    def forward(self, X, infer=False, symmetric=False):
+        """
+
+        :param X:
+        :param infer:
+        :param symmetric: symmetric sampling
+        :return:
+        """
 
         # Use *mean* as model parameters at test time
         if infer:
             output = torch.mm(X, self.W_mu) + self.b_mu.expand(X.size()[0], self.W_mu.size()[1])
             return output
 
-        epsilon_W, epsilon_b = self._random()
+        if not symmetric:
+            self.epsilon_W, self.epsilon_b = self._random()
+        else:
+            self.epsilon_W = Variable(self.epsilon_W.data * -1)
+            self.epsilon_b = Variable(self.epsilon_b.data * -1)
 
         W_sigma = torch.exp(self.W_rho)
         b_sigma = torch.exp(self.b_rho)
 
         # Construct weight matrix and bias by shifting it by a mean and scale it by a standard deviation
-        W = self.W_mu + W_sigma * epsilon_W
-        b = self.b_mu + b_sigma * epsilon_b
+        W = self.W_mu + W_sigma * self.epsilon_W
+        b = self.b_mu + b_sigma * self.epsilon_b
 
         # Compute output
         output = torch.mm(X, W) + b.expand(X.size()[0], W.size()[1])
@@ -193,7 +210,7 @@ class MLP(nn.Module):
         for layer in [self.input, self.hidden, self.output]:
             self.layers.append(layer)
 
-    def forward(self, x, infer=False):
+    def forward(self, x, infer=False, symmetric=False):
         _log_prior = 0
         _log_posterior = 0
 
@@ -201,9 +218,9 @@ class MLP(nn.Module):
 
             # Other than output layer
             if i != len(self.layers) - 1:
-                x = F.relu(layer.forward(x, infer))
+                x = F.relu(layer.forward(x, infer, symmetric))
             else:
-                x = F.softmax(layer.forward(x, infer))
+                x = F.softmax(layer.forward(x, infer, symmetric))
 
             # Compute prior and posterior along the way
             _log_prior += layer.log_prior
@@ -223,19 +240,27 @@ def Forward(X, Y):
     log_likelihood = 0
 
     for _ in range(N_Samples):   # sample N samples and average
+        symmetric = False
+        for i in range(2):
+            if i > 0 and not Symmetric: break
+            if i == 1: symmetric = True
 
-        # Forward and compute log prob
-        output, sample_log_prior, sample_log_posterior = hyper_net.forward(X)
+            # Forward and compute log prob
+            output, sample_log_prior, sample_log_posterior = hyper_net.forward(X, symmetric=symmetric)
 
-        # The likelihood of observing the data under the current weight configuration
-        log_prob = torch.log(output.gather(1, Y))
-        sample_log_likelihood = log_prob.sum()
+            # The likelihood of observing the data under the current weight configuration
+            log_prob = torch.log(output.gather(1, Y))
+            sample_log_likelihood = log_prob.sum()
 
-        log_prior += sample_log_prior
-        log_posterior += sample_log_posterior
-        log_likelihood += sample_log_likelihood
+            log_prior += sample_log_prior
+            log_posterior += sample_log_posterior
+            log_likelihood += sample_log_likelihood
 
-    return log_prior / N_Samples, log_posterior / N_Samples, log_likelihood / N_Samples
+    N = N_Samples
+    if Symmetric:
+        N = N_Samples * 2
+
+    return log_prior / N, log_posterior / N, log_likelihood / N
 
 
 def loss_fn(log_prior, log_posterior, log_likelihood):
@@ -289,9 +314,10 @@ for i_ep in range(N_Epochs):
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-paper')
 
-plt.title('Test Error on MNIST')
+plt.title(title)
 plt.plot(error_lst)
 plt.ylabel('Test error (%)')
 plt.xlabel('Epochs')
 plt.tight_layout()
 plt.show()
+
