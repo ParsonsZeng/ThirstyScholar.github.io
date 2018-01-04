@@ -16,6 +16,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data.sampler import SubsetRandomSampler
 
+import pdb
+
 
 # Hyperparameters
 N_Epochs = 15
@@ -25,7 +27,7 @@ BatchSize = 100
 Download_MNIST = False   # download the dataset if you don't already have it
 
 # Gaussian prior
-SigmaPrior = 1.
+SigmaPrior = .05
 
 # Scaled mixture Gaussian prior
 Pi = .25
@@ -126,28 +128,24 @@ class MLPLayer(nn.Module):
         self.n_output = n_output
 
         # Hyperparameters for a layer
-        self.W_mu = nn.Parameter(torch.FloatTensor(n_input, n_output).normal_(0, .1))
-        self.W_rho = nn.Parameter(torch.ones(n_input, n_output) * -3)
+        match_prior = math.log(math.exp(SigmaPrior) - 1)
 
-        self.b_mu = nn.Parameter(torch.FloatTensor(n_output).uniform_(-.1, .1))
-        self.b_rho = nn.Parameter(torch.ones(n_output) * -3)
+        self.W_mu = nn.Parameter(torch.FloatTensor(n_input, n_output).zero_())
+        self.W_rho = nn.Parameter(torch.ones(n_input, n_output) * match_prior)
+
+        self.b_mu = nn.Parameter(torch.FloatTensor(n_output).zero_())
+        self.b_rho = nn.Parameter(torch.ones(n_output) * match_prior)
 
         self.log_prior = .0
         self.log_posterior = .0
 
         self._Var = lambda x: Variable(torch.from_numpy(x).type(torch.FloatTensor))
 
-    def forward(self, X, infer=False):
-
-        # Use *mean* as model parameters at test time
-        if infer:
-            output = torch.mm(X, self.W_mu) + self.b_mu.expand(X.size()[0], self.W_mu.size()[1])
-            return output
-
+    def forward(self, X):
         epsilon_W, epsilon_b = self._random()
 
-        W_sigma = torch.exp(self.W_rho)
-        b_sigma = torch.exp(self.b_rho)
+        W_sigma = F.softplus(self.W_rho)
+        b_sigma = F.softplus(self.b_rho)
 
         # Construct weight matrix and bias by shifting it by a mean and scale it by a standard deviation
         W = self.W_mu + W_sigma * epsilon_W
@@ -158,16 +156,41 @@ class MLPLayer(nn.Module):
 
         # Compute prior:
         # Gaussian prior
-        self.log_prior = log_gaussian(W, 0, SigmaPrior).sum() + \
-                         log_gaussian(b, 0, SigmaPrior).sum()
+        log_prior = log_gaussian(W, 0, SigmaPrior).sum() + \
+                    log_gaussian(b, 0, SigmaPrior).sum()
 
         # Mixture Gaussian prior
-        # self.log_prior = log_mixture_gaussian(W).sum() + \
-        #                  log_mixture_gaussian(b).sum()
+        # log_prior = log_mixture_gaussian(W).sum() + \
+        #             log_mixture_gaussian(b).sum()
 
         # Compute posterior
-        self.log_posterior = log_gaussian(W, self.W_mu, W_sigma).sum() + \
-                             log_gaussian(b, self.b_mu, b_sigma).sum()
+        log_posterior = log_gaussian(W, self.W_mu, W_sigma).sum() + \
+                        log_gaussian(b, self.b_mu, b_sigma).sum()
+
+        return output, log_prior, log_posterior
+
+    def infer_MAP(self, X):
+        """
+        MAP inference
+        :param X:
+        :return:
+        """
+        output = torch.mm(X, self.W_mu) + self.b_mu.expand(X.size()[0], self.W_mu.size()[1])
+        return output
+
+    def infer_MC(self, X):
+        epsilon_W, epsilon_b = self._random()
+
+        W_sigma = F.softplus(self.W_rho)
+        b_sigma = F.softplus(self.b_rho)
+
+        # Construct weight matrix and bias by shifting it by a mean and scale it by a standard deviation
+        W = self.W_mu + W_sigma * epsilon_W
+        b = self.b_mu + b_sigma * epsilon_b
+
+        # Compute output
+        output = torch.mm(X, W) + b.expand(X.size()[0], W.size()[1])
+
         return output
 
     def _random(self):
@@ -193,23 +216,58 @@ class MLP(nn.Module):
         for layer in [self.input, self.hidden, self.output]:
             self.layers.append(layer)
 
-    def forward(self, x, infer=False):
+    def forward(self, x):
         _log_prior = 0
         _log_posterior = 0
 
         for i, layer in enumerate(self.layers):
+            x, layer_log_prior, layer_log_posterior = layer.forward(x)
 
-            # Other than output layer
+            # Apply activation func
             if i != len(self.layers) - 1:
-                x = F.relu(layer.forward(x, infer))
+                x = F.relu(x)
             else:
-                x = F.softmax(layer.forward(x, infer))
+                x = F.softmax(x)
 
             # Compute prior and posterior along the way
-            _log_prior += layer.log_prior
-            _log_posterior += layer.log_posterior
+            _log_prior += layer_log_prior
+            _log_posterior += layer_log_posterior
 
         return x, _log_prior, _log_posterior
+
+    def infer(self, x, mode='MAP'):
+        assert mode == 'MAP' or 'MC', 'Mode Not Found Error'
+
+        for i, layer in enumerate(self.layers):
+
+            if mode == 'MAP':
+                x = layer.infer_MAP(x)
+            else:   # mode == 'MC':
+                x = layer.infer_MC(x)
+
+            if i != len(self.layers) - 1:
+                x = F.relu(x)
+            else:
+                x = F.softmax(x)
+        return x
+
+    def infer_MC(self, x):
+        for i, layer in enumerate(self.layers):
+            x = layer.infer_MC(x)
+            if i != len(self.layers) - 1:
+                x = F.relu(x)
+            else:
+                x = F.softmax(x)
+        return x
+
+    def infer_MAP(self, x):
+        for i, layer in enumerate(self.layers):
+            x = layer.infer_MAP(x)
+            if i != len(self.layers) - 1:
+                x = F.relu(x)
+            else:
+                x = F.softmax(x)
+        return x
 
 
 def Forward(X, Y):
@@ -276,7 +334,7 @@ for i_ep in range(N_Epochs):
     test_X = Variable(test_set.test_data.view(test_set.test_data.size()[0], -1).type(torch.FloatTensor))
     test_Y = Variable(test_set.test_labels.view(test_set.test_labels.size()[0], -1))
 
-    pred_class = hyper_net.forward(test_X, infer=True)[0].data.numpy().argmax(axis=1)
+    pred_class = hyper_net.infer(test_X, mode='MAP').data.numpy().argmax(axis=1)
     true_class = test_Y.data.numpy().ravel()
 
     test_accu = (pred_class == true_class).mean()

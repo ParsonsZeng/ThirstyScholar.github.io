@@ -54,9 +54,11 @@ Test error with and without symmetric sampling are around 2.2%, respectively. Wi
 
 
 
-## BBQ-Networks
+## Bayes-by-Backprop Q-Networks (BBQ-Networks)
 
 Implement the Bayes-by-Backprop Q-network (BBQ-Networks) from [BBQ-Networks: Efficient Exploration in Deep Reinforcement Learning for Task-Oriented Dialogue Systems](https://arxiv.org/abs/1711.05715). We examine BBQ-Networks on the classical mountain car task which the reward is sparse and delayed.
 
 
+
+## Variational Information Maximizing Exploration (VIME)
 
