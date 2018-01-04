@@ -51,3 +51,12 @@ Here is a comparison between using and not using symmetric sampling. To make it 
 ![ss_compare](BBB/ss_compare.png)
 
 Test error with and without symmetric sampling are around 2.2%, respectively. With symmetric sampling, learning converges faster but the untimate result is similar to their random sampling counterpart.
+
+
+
+## BBQ-Networks
+
+Implement the Bayes-by-Backprop Q-network (BBQ-Networks) from [BBQ-Networks: Efficient Exploration in Deep Reinforcement Learning for Task-Oriented Dialogue Systems](https://arxiv.org/abs/1711.05715). We examine BBQ-Networks on the classical mountain car task which the reward is sparse and delayed.
+
+
+

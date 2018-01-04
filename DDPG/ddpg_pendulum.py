@@ -2,10 +2,8 @@ from replay_memory import Transition, ReplayMemory
 from running_stat import ZFilter
 
 from itertools import zip_longest
-import matplotlib.pyplot as plt
 from copy import deepcopy
 import numpy as np
-import random
 import gym
 
 import torch
@@ -89,8 +87,8 @@ class DDPG(nn.Module):
         return action
 
     def store_transition(self, s, a, r, s_):
-        s = self.zfilter(s)
-        s_ = self.zfilter(s_)
+        s = self.zfilter(s, update=False)
+        s_ = self.zfilter(s_, update=False)
         r /= 16   # scale reward signal
 
         self.replay_memory.push(s, a, np.array([r]), s_)   # store with 1D np array
@@ -160,5 +158,3 @@ if __name__ == '__main__':
             if done:
                 print('Ep: ', ep, '| Ep_r: ', round(ret, 2))
                 break
-
-
