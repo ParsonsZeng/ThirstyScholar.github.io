@@ -52,6 +52,8 @@ Here is a comparison between using and not using symmetric sampling. To make it 
 
 Test error with and without symmetric sampling are around 2.2%, respectively. With symmetric sampling, learning converges faster but the untimate result is similar to their random sampling counterpart.
 
+**Update:** I refine the code and employ the local reparametrization trick presented in the paper [*"Variational Dropout and the Local Reparameterization Trick"*](https://arxiv.org/abs/1506.02557), which gives you higher computational efficiency and lower variance gradient estimates. You can find it in `bnn_mnist.py`.
+
 
 
 ## Bayes-by-Backprop Q-Networks (BBQ-Networks)

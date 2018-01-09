@@ -308,7 +308,7 @@ def loss_fn(log_prior, log_posterior, log_likelihood):
 
 
 # Initialize network
-hyper_net = MLP(784, 128, 10)   # output mean for Gaussian
+hyper_net = MLP(784, 128, 10)
 optim = torch.optim.Adam(hyper_net.parameters(), lr=LearningRate)
 
 
