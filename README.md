@@ -6,6 +6,8 @@ This repo contains the following materials:
 
 ## Deep Deterministic Policy Gradient (DDPG)
 
+![pendulum_gif](DDPG/pendulum.gif)
+
 A simple implementation of the *deep deterministic policy gradient* algorithm presented in [this paper](https://arxiv.org/pdf/1509.02971.pdf) on the classical [Pendulum task](https://github.com/openai/gym/wiki/Pendulum-v0) via [OpenAI Gym](https://gym.openai.com). The resulting learning curve is shown below.
 
 ![ddpg_pendulum_result](DDPG/ddpg_pendulum_result.png)
@@ -16,7 +18,7 @@ I also standardized the state input by keeping a running stat (taken from [John 
 
 ## Proximal Policy Optimization (PPO)
 
-![cartpole_gif](cartpole.gif)
+![cartpole_gif](PPO/cartpole.gif)
 
 A simple implementation of the single-threaded version of the *proximal policy optimization* algorithm with the clipped surrogate objective in [this paper](https://arxiv.org/abs/1707.06347) by OpenAI. The learning curve on the classical [CartPole](https://github.com/openai/gym/wiki/CartPole-v0) task is shown below.
 
