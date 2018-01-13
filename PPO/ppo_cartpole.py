@@ -36,9 +36,19 @@ class PPO_Critic(nn.Module):
         return v
 
 
-env = gym.make('CartPole-v0')
+env_id = 'CartPole-v0'
+env = gym.make(env_id)
 
-NUM_EP = 200
+MONITOR = True
+
+if MONITOR:
+    import os.path
+    script_path = os.path.dirname(__file__)
+    save_path = os.path.join(script_path, env_id)
+    env = gym.wrappers.Monitor(env, save_path)
+
+NUM_EP = 300
+BATCH_SIZE = 64
 NUM_EPOCH = 5
 GAMMA = .99   # discount factor
 N_S = env.observation_space.shape[0]
@@ -67,14 +77,13 @@ traj = { 's': [], 'a': [], 'r': [], 'T': [] }
 
 ep_ret = []
 for i_episode in range(NUM_EP):
-    s = env.reset()
+    s = zfilter(env.reset().astype(np.float32))
 
     ret = 0
     while True:
         # Show last 10 episodes
         # if i_episode > NUM_EP - 10: env.render()
 
-        s = zfilter(s)
         S = _Var(s, torch.FloatTensor).unsqueeze(0)
         A = actor.forward(S)
 
@@ -82,10 +91,11 @@ for i_episode in range(NUM_EP):
         a = int(np.random.choice(a_prob.shape[0], p=a_prob))
 
         s_, r, done, info = env.step(a)
+        s_ = zfilter(s_.astype(np.float32))
         ret += r
 
         # Modify the reward function
-        r = 0 if not done else -1
+        # r = 0 if not done else -1
 
         traj['s'].append(s)
         traj['a'].append(np.array([a]))
@@ -96,7 +106,7 @@ for i_episode in range(NUM_EP):
         s = s_
 
         # Update when collected a mini-batch of size 32
-        if len(traj['s']) == 32:
+        if len(traj['s']) == BATCH_SIZE:
             np_s = np.array(traj['s'])
             np_a = np.array(traj['a'])
             np_r = np.array(traj['r'])
@@ -152,6 +162,9 @@ for i_episode in range(NUM_EP):
             ep_ret.append(ret)
             print(ret)
             break
+
+# Important to close the env. when monitoring
+env.close()
 
 plt.title('Learning Curve')
 plt.plot(ep_ret)

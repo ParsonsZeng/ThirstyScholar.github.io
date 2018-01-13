@@ -16,11 +16,21 @@ I also standardized the state input by keeping a running stat (taken from [John 
 
 ## Proximal Policy Optimization (PPO)
 
+![cartpole_gif](cartpole.gif)
+
 A simple implementation of the single-threaded version of the *proximal policy optimization* algorithm with the clipped surrogate objective in [this paper](https://arxiv.org/abs/1707.06347) by OpenAI. The learning curve on the classical [CartPole](https://github.com/openai/gym/wiki/CartPole-v0) task is shown below.
 
 ![ppo_cartpole_result](PPO/ppo_cartpole_result.png)
 
 I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and slightly modified the reward function to make it more suitable for learning.
+
+**Update:** I upload another file on applying PPO to the Atari games in `ppo_atari.py`. For the sake of simplicity, I train the agent using the *128 ram input* of the Atari machine. Main differences:
+
+1. Scale the input feature by 255.
+2. Reduce action space (for some games).
+3. Scale the reward fucntion (for some games).
+
+But the main architecture remains the same.
 
 
 
