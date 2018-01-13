@@ -6,8 +6,6 @@ This repo contains the following materials:
 
 ## *Deep Deterministic Policy Gradient (DDPG)*
 
-$\mathbb E$
-
 
 <center>
 ![pendulum_gif](DDPG/pendulum.gif)
