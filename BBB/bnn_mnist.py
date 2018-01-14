@@ -4,34 +4,34 @@ Adapt from:
 2. "Variational Dropout and the Local Reparameterization Trick" (https://arxiv.org/abs/1506.02557)
 3. http://gluon.mxnet.io/chapter18_variational-methods-and-uncertainty/bayes-by-backprop.html
 """
-
-import numpy as np
-import math
+from BNN import BNN
 
 import torch
 import torchvision
-import torch.nn as nn
 import torch.utils.data as Data
-import torch.nn.functional as F
 from torch.autograd import Variable
 
-# Hyperparameters
 N_Epochs = 15
 N_Samples = 1
 LearningRate = 1e-3
 BatchSize = 100
 Download_MNIST = False   # download the dataset if you don't already have it
 
-training_set = torchvision.datasets.MNIST(
-    root='./mnist/',
+# Change to whatever directory your data is at
+import os.path
+dataset_path = os.path.join(os.path.dirname(__file__), 'mnist')
+
+train_set = torchvision.datasets.MNIST(
+    root=dataset_path,
     train=True,
     transform=torchvision.transforms.ToTensor(),
     download=Download_MNIST
 )
 
-N_Batch = training_set.train_data.size()[0] / BatchSize
+train_size = train_set.train_data.size()[0]
+N_Batch = train_size / BatchSize
 
-train_loader = Data.DataLoader(dataset=training_set, batch_size=BatchSize, shuffle=True)
+train_loader = Data.DataLoader(dataset=train_set, batch_size=BatchSize, shuffle=True)
 
 test_set = torchvision.datasets.MNIST(
     root='./mnist/',
@@ -40,178 +40,67 @@ test_set = torchvision.datasets.MNIST(
     download=Download_MNIST
 )
 
+test_size = test_set.test_data.size()[0]
 
-NegHalfLog2PI = -.5 * math.log(2.0 * math.pi)
-softplus = lambda x: math.log(1 + math.exp(x))
+compute_accu = lambda pred, true, digits: round((pred == true).mean() * 100, digits)
 
+if __name__ == '__main__':
 
-def log_gaussian2(x, mean, std):
-    return NegHalfLog2PI - torch.log(std) - .5 * torch.pow(x - mean, 2) / torch.pow(std, 2)
+    # Initialize network
+    bnn = BNN(784, 128, 10)
+    optim = torch.optim.Adam(bnn.parameters(), lr=LearningRate)
 
+    # Main training loop
+    train_accu_lst = []
+    test_accu_lst = []
+    for i_ep in range(N_Epochs):
 
-def sample_KL(x, mean1, std1, mean2, std2):
-    log_prob1 = log_gaussian2(x, mean1, std1)
-    log_prob2 = log_gaussian2(x, mean2, std2)
-    return log_prob1 - log_prob2
+        # Training
+        for X, Y in train_loader:
+            batch_X = Variable(X.view(BatchSize, -1))
+            batch_Y = Variable(Y.view(BatchSize, -1))
 
+            kl, log_likelihood = bnn.Forward(batch_X, batch_Y, N_Samples)
 
-class MLPLayer(nn.Module):
-    def __init__(self, n_input, n_output, activation, prior_mean, prior_rho):
-        assert activation == 'relu' or 'softmax' or 'none', 'Activation Type Not Found Error'
+            # Loss and backprop
+            loss = BNN.loss_fn(kl, log_likelihood, N_Batch)
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
 
-        super(MLPLayer, self).__init__()
+        # Evaluate on training set
+        train_X = Variable(train_set.train_data.view(train_size, -1).type(torch.FloatTensor))
+        train_Y = Variable(train_set.train_labels.view(train_size, -1))
 
-        # Instantiate a large Gaussian block to sample from, much faster than generate random sample every time
-        self._gaussian_block = np.random.randn(10000)
+        pred_class = bnn.forward(train_X, mode='MAP').data.numpy().argmax(axis=1)
+        true_class = train_Y.data.numpy().ravel()
 
-        self.n_input = n_input
-        self.n_output = n_output
+        train_accu = compute_accu(pred_class, true_class, 1)
+        print('Epoch', i_ep, '|  Training Accuracy:', train_accu, '%')
 
-        # Hyperparameters for a layer
-        self.W_mean = nn.Parameter(torch.ones((n_input, n_output)) * prior_mean)
-        self.W_rho = nn.Parameter(torch.ones(n_input, n_output) * prior_rho)
+        train_accu_lst.append(train_accu)
 
-        self.b_mean = nn.Parameter(torch.ones(1, n_output) * prior_mean)
-        self.b_rho = nn.Parameter(torch.ones(1, n_output) * prior_rho)
+        # Evaluate on test set
+        test_X = Variable(test_set.test_data.view(test_size, -1).type(torch.FloatTensor))
+        test_Y = Variable(test_set.test_labels.view(test_size, -1))
 
-        self.prior_var = Variable(torch.ones(1, 1) * softplus(prior_rho) ** 2)
+        pred_class = bnn.forward(test_X, mode='MAP').data.numpy().argmax(axis=1)
+        true_class = test_Y.data.numpy().ravel()
 
-        # Set activation func
-        self.act = None
-        if activation == 'relu':
-            self.act = F.relu
-        elif activation == 'softmax':
-            self.act = F.softmax
+        test_accu = compute_accu(pred_class, true_class, 1)
+        print('Epoch', i_ep, '|  Test Accuracy:', test_accu, '%')
 
-        self._Var = lambda x: Variable(torch.from_numpy(x).type(torch.FloatTensor))
+        test_accu_lst.append(test_accu)
 
-    def forward(self, X, mode):
-        assert mode == 'forward' or 'MAP' or 'MC', 'MLPLayer Mode Not Found Error'
+    # Plot
+    import matplotlib.pyplot as plt
+    plt.style.use('seaborn-paper')
 
-        _shape = (X.size()[0], self.n_output)
-
-        # Z: pre-activation. Local reparam. trick is used.
-        Z_Mean = torch.mm(X, self.W_mean) + self.b_mean.expand(*_shape)
-
-        if mode == 'MAP': return self.act(Z_Mean) if self.act is not None else Z_Mean
-
-        Z_Std = torch.sqrt(
-            torch.mm(torch.pow(X, 2),
-                     torch.pow(F.softplus(self.W_rho), 2)) +
-            torch.pow(F.softplus(self.b_rho.expand(*_shape)), 2)
-        )
-
-        Z_noise = self._random(_shape)
-        Z = Z_Mean + Z_Std * Z_noise
-
-        if mode == 'MC': return self.act(Z) if self.act is not None else Z
-
-        # Stddev for the prior
-        Prior_Z_Std = torch.sqrt(
-            torch.mm(torch.pow(X, 2),
-                     self.prior_var.expand(self.n_input, self.n_output)) +
-            self.prior_var.expand(*_shape)
-        ).detach()
-
-        # KL[posterior(w|D)||prior(w)]
-        layer_KL = sample_KL(Z,
-                             Z_Mean, Z_Std,
-                             Z_Mean.detach(), Prior_Z_Std).sum()
-
-        out = self.act(Z) if self.act is not None else Z
-        return out, layer_KL
-
-    def _random(self, shape):
-        Z_noise = np.random.choice(self._gaussian_block, size=shape[0] * shape[1])
-        Z_noise = np.expand_dims(Z_noise, axis=1).reshape(*shape)
-        return self._Var(Z_noise)
-
-
-class MLP(nn.Module):
-    def __init__(self, n_input, hidden_size, n_output):
-        super(MLP, self).__init__()
-        self.input = MLPLayer(n_input, hidden_size, 'relu', prior_mean=0, prior_rho=-3)
-        self.hidden = MLPLayer(hidden_size, hidden_size, 'relu', prior_mean=0, prior_rho=-3)
-        self.output = MLPLayer(hidden_size, n_output, 'softmax', prior_mean=0, prior_rho=-3)
-
-        self.layers = []
-        for layer in [self.input, self.hidden, self.output]:
-            self.layers.append(layer)
-
-    def forward(self, x, mode):
-        if mode == 'forward':
-            net_kl = 0
-            for layer in self.layers:
-                x, layer_kl = layer.forward(x, mode)
-                net_kl += layer_kl
-            return x, net_kl
-        else:
-            for layer in self.layers:
-                x = layer.forward(x, mode)
-            return x
-
-
-def Forward(net, x, y, n_samples):
-    total_likelh = 0
-    total_kl = 0
-    for _ in range(n_samples):   # sample N samples and average
-        out, kl = net.forward(x, mode='forward')
-
-        # Likelihood of observing the data under the current weight configuration
-        likelh = torch.log(out.gather(1, y)).sum()
-
-        total_kl += kl
-        total_likelh += likelh
-
-    return total_kl / n_samples, total_likelh / n_samples
-
-
-def loss_fn(kl, likelh, n_batch):
-    return (kl / n_batch - likelh).mean()
-
-
-# Initialize network
-bnn = MLP(784, 128, 10)
-optim = torch.optim.Adam(bnn.parameters(), lr=LearningRate)
-
-
-# Main training loop
-error_lst = []
-for i_ep in range(N_Epochs):
-
-    # Training
-    for X, Y in train_loader:
-        batch_X = Variable(X.view(X.size()[0], -1))
-        batch_Y = Variable(Y.view(Y.size()[0], -1))
-
-        kl, log_likelihood = Forward(bnn, batch_X, batch_Y, N_Samples)
-
-        # Loss and backprop
-        loss = loss_fn(kl, log_likelihood, N_Batch)
-        optim.zero_grad()
-        loss.backward()
-        optim.step()
-
-    # Evaluate on test set
-    test_X = Variable(test_set.test_data.view(test_set.test_data.size()[0], -1).type(torch.FloatTensor))
-    test_Y = Variable(test_set.test_labels.view(test_set.test_labels.size()[0], -1))
-
-    pred_class = bnn.forward(test_X, mode='MAP').data.numpy().argmax(axis=1)
-    true_class = test_Y.data.numpy().ravel()
-
-    test_accu = (pred_class == true_class).mean()
-    print('Epoch', i_ep, '|  Test Accuracy:', test_accu * 100, '%')
-
-    error_lst.append((1 - test_accu) * 100)
-
-
-# Plotting
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-paper')
-
-plt.title('Test Error on MNIST')
-plt.plot(error_lst)
-plt.ylabel('Test error (%)')
-plt.xlabel('Epochs')
-plt.tight_layout()
-plt.show()
+    plt.title('Classification Accuracy on MNIST')
+    plt.plot(train_accu_lst, label='Train')
+    plt.plot(test_accu_lst, label='Test')
+    plt.ylabel('Accuracy (%)')
+    plt.xlabel('Epochs')
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.show()

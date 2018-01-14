@@ -4,7 +4,7 @@ This repo contains the following materials:
 
 
 
-## *Deep Deterministic Policy Gradient (DDPG)*
+## Deep Deterministic Policy Gradient (DDPG)
 
 <center>
 
@@ -12,32 +12,30 @@ This repo contains the following materials:
 
 </center>
 
-A simple implementation of the *deep deterministic policy gradient* algorithm presented in [this paper](https://arxiv.org/pdf/1509.02971.pdf) on the classical [Pendulum task](https://github.com/openai/gym/wiki/Pendulum-v0) via [OpenAI Gym](https://gym.openai.com). The resulting learning curve is shown below.
+A simple implementation of the *deep deterministic policy gradient* algorithm presented in [this paper](https://arxiv.org/pdf/1509.02971.pdf) on the classical [Pendulum task](https://github.com/openai/gym/wiki/Pendulum-v0) via [OpenAI Gym](https://gym.openai.com). The resulting learning curve is shown below. I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and scale the reward signal into the range roughly between [-1, 0] by dividing it by 16.
 
 <center>
 
 ![ddpg_pendulum_result](DDPG/ddpg_pendulum_result.png)
 </center>
 
-I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and scale the reward signal into the range roughly between [-1, 0] by dividing it by 16.
 
 
-
-## *Proximal Policy Optimization (PPO)*
+## Proximal Policy Optimization (PPO)
 
 <center>
 
 ![cartpole_gif](PPO/cartpole.gif)
 </center>
 
-A simple implementation of the single-threaded version of the *proximal policy optimization* algorithm with the clipped surrogate objective in [this paper](https://arxiv.org/abs/1707.06347) by OpenAI. The learning curve on the classical [CartPole](https://github.com/openai/gym/wiki/CartPole-v0) task is shown below.
+A simple implementation of the single-threaded version of the *proximal policy optimization* algorithm with the clipped surrogate objective in [this paper](https://arxiv.org/abs/1707.06347) by OpenAI. The learning curve on the classical [CartPole](https://github.com/openai/gym/wiki/CartPole-v0) task is shown below. I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and slightly modified the reward function to make it more suitable for learning.
 
 <center>
 
 ![ppo_cartpole_result](PPO/ppo_cartpole_result.png)
 </center>
 
-I also standardized the state input by keeping a running stat (taken from [John Schulman's repo](https://github.com/joschu/modular_rl/blob/master/modular_rl/running_stat.py)) and slightly modified the reward function to make it more suitable for learning.
+
 
 **Update:** I upload another file on applying PPO to the Atari games in `ppo_atari.py`. For the sake of simplicity, I train the agent using the *128 ram input* of the Atari machine. Main differences:
 
@@ -49,7 +47,7 @@ But the main architecture remains the same.
 
 
 
-## *Bayes by Backprop (BBB)*
+## Bayes by Backprop (BBB)
 
 An implementation of the *Bayes by Backprop* algorithm presented in the paper ["Weight Uncertainty in Neural Networks"](https://arxiv.org/abs/1505.05424) on the MNIST dataset using PyTorch. Here we use a scaled mixture Gaussian prior.
 
@@ -58,7 +56,7 @@ An implementation of the *Bayes by Backprop* algorithm presented in the paper ["
 ![bbb_mnist_result](BBB/bbb_mnist_result.png)
 </center>
 
-As you can see on the plot, bayes by backprop prevents the optimization from overfitting. The last test error was around 2.5% after 15 epochs of training.
+As you can see from the plot, bayes by backprop prevents overfitting reaching final test accuracy around 97.4%.
 
 
 
@@ -78,15 +76,19 @@ Here is a comparison between using and not using symmetric sampling. To make it 
 
 Test error with and without symmetric sampling are around 2.2%, respectively. With symmetric sampling, learning converges faster but the untimate result is similar to their random sampling counterpart.
 
-**Update:** I refine the code and employ the local reparametrization trick presented in the paper [*"Variational Dropout and the Local Reparameterization Trick"*](https://arxiv.org/abs/1506.02557), which gives you higher computational efficiency and lower variance gradient estimates. You can find it in `bnn_mnist.py`.
+**Update:** I refine the code and employ the local reparametrization trick presented in the paper [*"Variational Dropout and the Local Reparameterization Trick"*](https://arxiv.org/abs/1506.02557), which gives you higher computational efficiency and lower variance gradient estimates. I separate them into three files:
+
+1. `BNNLayer.py` contains a Bayesian layer class.
+2. `BNN.py` contains a Bayesian neural network class.
+3. `bnn_mnist.py` = MNIST data from `torchvision` + training process.
 
 
 
-## *Bayes-by-Backprop Q-Networks (BBQ-Networks)*
+## Bayes-by-Backprop Q-Networks (BBQ-Networks)
 
 Implement the Bayes-by-Backprop Q-network (BBQ-Networks) from [BBQ-Networks: Efficient Exploration in Deep Reinforcement Learning for Task-Oriented Dialogue Systems](https://arxiv.org/abs/1711.05715). We examine BBQ-Networks on the classical mountain car task which the reward is sparse and delayed.
 
 
 
-## *Variational Information Maximizing Exploration (VIME)*
+## Variational Information Maximizing Exploration (VIME)
 
