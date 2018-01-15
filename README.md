@@ -4,6 +4,18 @@ This repo contains the following materials:
 
 
 
+## Advantage Actor-Critic (A2C)
+
+We trained a feedforward and recurrent (LSTM) neural network to solve the CartPole task. For the original version of the task, both network should work equally well as the state representation is Markovian (MDP) (while LSTM takes a lot longer to train.)
+
+![a2c_ff_lstm_cp](A2C/a2c_ff_lstm_cp.png)
+
+To make the state non-Markovian (hence a *POMDP*), we "blurred" the state by randomly setting some of the features to zero at a fixed probability, namely, a probability *mask*. The LSTM agent can still learn a good policy although not as good in the Markovian case since we set the probability faily high at 30%.
+
+![a2c_ff_lstm_blur_cp](A2C/a2c_ff_lstm_blur_cp.png)
+
+
+
 ## Deep Deterministic Policy Gradient (DDPG)
 
 <center>
@@ -47,6 +59,14 @@ But the main architecture remains the same.
 
 
 
+### Experiments with Different Z-Filters
+
+Play with different z-filters: one is the simple mean and standard deviation and the other is the exponential-weighted mean and standard deviation.
+
+![z_filters](PPO/z_filters.png)
+
+
+
 ## Bayes by Backprop (BBB)
 
 An implementation of the *Bayes by Backprop* algorithm presented in the paper ["Weight Uncertainty in Neural Networks"](https://arxiv.org/abs/1505.05424) on the MNIST dataset using PyTorch. Here we use a scaled mixture Gaussian prior.
@@ -56,7 +76,7 @@ An implementation of the *Bayes by Backprop* algorithm presented in the paper ["
 ![bbb_mnist_result](BBB/bbb_mnist_result.png)
 </center>
 
-As you can see from the plot, bayes by backprop prevents overfitting reaching final test accuracy around 97.4%.
+As you can see from the plot, bayes by backprop prevents overfitting reaching final test accuracy around 97.4% (97% is apprixmately the limit of feedforward neural networks on MNIST while conv nets can reach about 99.7% accuracy).
 
 
 
