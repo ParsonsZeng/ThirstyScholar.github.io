@@ -63,7 +63,7 @@ But the main architecture remains the same.
 
 Play with different z-filters: one is the simple mean and standard deviation and the other is the exponential-weighted mean and standard deviation.
 
-![z_filters](PPO/z_filters.png)
+![z_filters](PPO/z_filters_cp.png)
 
 
 
